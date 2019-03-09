@@ -40,7 +40,7 @@ Supports translation - credits: [es_extended](https://github.com/ESX-Org/es_exte
 start DRP_WHITELIST
 ```
 
-Import whitelist.sql to your database
+Import **whitelist.sql** to your database
 
 **Commands**
 - /addwl ID (ex. steam:76561197960287930)
