@@ -1,15 +1,60 @@
 Whitelist = {}
+NotWhitelisted = {}
 
 -- Check if player is whitelisted
 AddEventHandler('playerConnecting', function(name, setCallback)
     local Identifiers = GetPlayerIdentifiers(source)
+    local _source = source
     
-    if not has_value(Whitelist, Identifiers[1]) and not has_value(Whitelist, Identifiers[2]) then
+    if not has_value(Whitelist, Identifiers[1]) and not has_value(Whitelist, Identifiers[2]) and #NotWhitelisted >= Config.OpenSlots then
         setCallback(_U('not_whitelisted'))
         CancelEvent()
         return
+    else
+        if not has_value(Whitelist, Identifiers[1]) and not has_value(Whitelist, Identifiers[2]) then
+            table.insert(NotWhitelisted, {source = source, steamid = Identifiers[1]})
+            
+            for i = 1, #NotWhitelisted, 1 do
+                if NotWhitelisted[i].steamid == Identifiers[1] and NotWhitelisted[i].source ~= source then
+                    table.remove(NotWhitelisted, i)
+                    break
+                end
+            end
+            
+            SetTimeout(240000, function()
+                checkSpawned(_source)
+            end)
+        end
+    end
+
+end)
+
+AddEventHandler('playerDropped', function()
+    local SteamID = GetPlayerIdentifiers(source)[1]
+    local _source = source
+
+    print(source)
+    
+    for i = 1, #NotWhitelisted, 1 do
+        if NotWhitelisted[i].steamid == SteamID then
+            table.remove(NotWhitelisted, i)
+            break
+        end
     end
 end)
+
+function checkSpawned(source)
+    if GetPlayerName(source) == nil then
+        if has_value(NotWhitelisted, source) then
+            for i = 1, #NotWhitelisted, 1 do
+                if NotWhitelisted[i].source == source then
+                    table.remove(NotWhitelisted, i)
+                    break
+                end
+            end
+        end
+    end
+end
 
 -- Add Whitelist Command
 TriggerEvent('es:addGroupCommand', 'addwl', "mod", function(source, args, user)
@@ -70,20 +115,20 @@ function addToWhitelist(args, source, rcon)
             
             -- Removes Steam: from ID
             local StreamID = string.gsub(id, "steam:", "")
-
+            
             -- Check length of SteamID64 should be 17
             if string.len(StreamID) == 17 then
-
+                
                 -- Converts SteamID to hex and add's steam: in front again
                 local HexSteamID = "steam:" .. string.format('%x', StreamID)
                 
                 -- Check if ID Whitelisted
                 if not has_value(Whitelist, HexSteamID) then
-
+                    
                     -- Adds ID to whitelist Mysql and Table
                     addWhitelistToMysql(HexSteamID)
                     table.insert(Whitelist, HexSteamID)
-
+                    
                     if not rcon then
                         TriggerClientEvent('chat:addMessage', source, {args = {"^2WHITELIST ", _U('added_to_whitelist', HexSteamID)}})
                     else
@@ -92,24 +137,24 @@ function addToWhitelist(args, source, rcon)
                 
                 -- ID found in table
                 else
-
+                    
                     if not rcon then
                         TriggerClientEvent('chat:addMessage', source, {args = {"^1WHITELIST ", _U('already_whitelisted')}})
                     else
                         RconPrint("[Whitelist] The ID is already whitelisted\n")
                     end
-
+                
                 end
-
+            
             -- Not a valid SteamID
             else
-
+                
                 if not rcon then
                     TriggerClientEvent('chat:addMessage', source, {args = {"^1WHITELIST ", _U('not_valid_steamid')}})
                 else
                     RconPrint("[Whitelist] Not a valid Steam ID\n")
                 end
-
+            
             end
         
         -- Check if ID includes License
@@ -117,45 +162,45 @@ function addToWhitelist(args, source, rcon)
             
             -- Removes License: from ID
             local License = string.gsub(id, "license:", "")
-
+            
             -- Check length with out license: should be 40
             if string.len(License) == 40 then
-
+                
                 -- Check if ID is whitelisted
                 if not has_value(Whitelist, id) then
-
+                    
                     -- Adds ID to whitelist MySQL and Table
                     addWhitelistToMysql("license:" .. License)
                     table.insert(Whitelist, id)
-
+                    
                     if not rcon then
                         TriggerClientEvent('chat:addMessage', source, {args = {"^2WHITELIST ", _U('added_to_whitelist', id)}})
                     else
                         RconPrint("[Whitelist] Added ID to whitelist " .. id .. " \n")
                     end
-
+                
                 -- ID found in table
                 else
-
+                    
                     if not rcon then
                         TriggerClientEvent('chat:addMessage', source, {args = {"^1WHITELIST ", _U('already_whitelisted')}})
                     else
                         RconPrint("[Whitelist] The ID is already whitelisted\n")
                     end
-
+                
                 end
-
+            
             -- Not a valid License ID
             else
-
+                
                 if not rcon then
                     TriggerClientEvent('chat:addMessage', source, {args = {"^1WHITELIST ", _U('not_valid_license')}})
                 else
                     RconPrint("[Whitelist] Not a valid License ID\n")
                 end
-
+            
             end
-
+        
         -- If Steam or License is not found
         else
             if not rcon then
@@ -187,13 +232,13 @@ function removeFromWhitelist(args, source, rcon)
             
             -- Removes Steam: from ID
             local StreamID = string.gsub(id, "steam:", "")
-
+            
             -- Check length of SteamID64 should be 17
             if string.len(StreamID) == 17 then
                 
                 -- Converts SteamID to hex and add's steam: in front again
                 local HexSteamID = "steam:" .. string.format('%x', StreamID)
-
+                
                 -- Check if ID Whitelisted
                 if has_value(Whitelist, HexSteamID) then
                     
@@ -211,18 +256,18 @@ function removeFromWhitelist(args, source, rcon)
                     if not rcon then
                         TriggerClientEvent('chat:addMessage', source, {args = {"^1WHITELIST ", _U('removed_from_whitelist', HexSteamID)}})
                     else
-                        RconPrint("[Whitelist] ID removed from whitelist " .. HexSteamID .."\n")
+                        RconPrint("[Whitelist] ID removed from whitelist " .. HexSteamID .. "\n")
                     end
-
-                -- ID found in table    
+                
+                -- ID found in table
                 else
-
+                    
                     if not rcon then
                         TriggerClientEvent('chat:addMessage', source, {args = {"^1WHITELIST ", _U('is_not_whitelisted')}})
                     else
                         RconPrint("[Whitelist] ID is not whitelisted\n")
                     end
-
+                
                 end
             
             -- Check length of SteamID Hex Format should be 15
@@ -246,16 +291,16 @@ function removeFromWhitelist(args, source, rcon)
                     else
                         RconPrint("[Whitelist] ID removed from whitelist " .. id .. "\n")
                     end
-
+                
                 -- ID found in table
                 else
-
+                    
                     if not rcon then
                         TriggerClientEvent('chat:addMessage', source, {args = {"^1WHITELIST ", _U('is_not_whitelisted')}})
                     else
                         RconPrint("[Whitelist] ID is not whitelisted\n")
                     end
-
+                
                 end
             
             -- Not a valid SteamID
@@ -272,13 +317,13 @@ function removeFromWhitelist(args, source, rcon)
             
             -- Removes License: from ID
             local License = string.gsub(id, "license:", "")
-
+            
             -- Check length with out license: should be 40
             if string.len(License) == 40 then
                 
                 -- Check if ID is whitelisted
                 if has_value(Whitelist, id) then
-
+                    
                     -- Removes ID to whitelist MySQL and Table
                     removeWhitelistFromMysql(id)
                     
@@ -295,7 +340,7 @@ function removeFromWhitelist(args, source, rcon)
                     else
                         RconPrint("[Whitelist] ID removed from whitelist " .. id .. "\n")
                     end
-
+                
                 -- ID found in table
                 else
                     if not rcon then
@@ -304,7 +349,7 @@ function removeFromWhitelist(args, source, rcon)
                         RconPrint("[Whitelist] ID is not whitelisted\n")
                     end
                 end
-
+            
             -- Not a valid License ID
             else
                 if not rcon then
@@ -315,24 +360,24 @@ function removeFromWhitelist(args, source, rcon)
             end
         
         else
-
+            
             if not rcon then
                 TriggerClientEvent('chat:addMessage', source, {args = {"^1WHITELIST ", _U('invalid_id')}})
             else
                 RconPrint("[Whitelist] Invalid ID remember steam: or license:\n")
             end
-
+        
         end
-
+    
     -- ID found in table
     else
-
+        
         if not rcon then
             TriggerClientEvent('chat:addMessage', source, {args = {"^1SYSTEM ", _U('invalid_entry')}})
         else
             RconPrint("[Whitelist] Identifier Missing\n")
         end
-
+    
     end
 end
 
