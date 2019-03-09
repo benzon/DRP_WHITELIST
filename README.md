@@ -19,9 +19,18 @@ Most whitelist scripts I have tried, where either missing the feature to add Ste
 
 And that is why I created this script, it supports adding steam id’s with out having to convert them to hex, and it support’s the usage of license identifier to, the in-game commands are based on essentialmode, but it features rcon commands to, and from what I read they support’s ace permissions, so it can be made a standalone release quite easy.
 
-But I don't got enough experience with ace permissions, I would love to hear more about it, so I can do a 100% standalone release. 
+But I don't got enough experience with ace permissions, I would love to hear more about it, so I can do a 100% standalone release.
 
 Supports translation - credits: [es_extended](https://github.com/ESX-Org/es_extended)
+
+**Extended Version**
+This version includes the option to have ex. 10 slots that dos not require whitelist, bit more tricky to do then expected.
+
+The main issue is if you end's up not getting in to loading screen and close down fimve, it will not register a playerDropped, to get around this issue i had to use a SetTimeout, that checks after 4 min, if it can fetch the playername from that source id that is saved in a table.
+
+Then i startet thinking, what if a person decided to retry connect, they would be logged twice since source id changes, so i added SteamID to the table, so on ex. a reconnect it would check if that SteamID where in the table and if the source id dos not match the one in the table, it will remove it instant.
+
+This is highly beta but knock on wood it should work! - maybe this could be done better, not sure would love to get others perspective on that part of the code.
 
 **Features**
 - Supports SteamID64 (steam:*****************)

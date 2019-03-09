@@ -1,5 +1,4 @@
 Config = {}
 Config.Locale = 'da' -- Localisation
 
-Config.OpenSlots = 2
-Config.WLSlots = 31
+Config.OpenSlots = 10
