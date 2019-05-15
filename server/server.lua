@@ -1,13 +1,23 @@
 Whitelist = {}
 
 -- Check if player is whitelisted
-AddEventHandler('playerConnecting', function(name, setCallback)
+AddEventHandler('playerConnecting', function(name, setCallback, deferrals)
+    deferrals.defer()
+
+    local source = source
+
+    deferrals.update(_U('whitelist_check'))
+
+    Citizen.Wait(300)
+
     local Identifiers = GetPlayerIdentifiers(source)
     
     if not has_value(Whitelist, Identifiers[1]) and not has_value(Whitelist, Identifiers[2]) then
-        setCallback(_U('not_whitelisted'))
+        deferrals.done(_U('not_whitelisted'))
         CancelEvent()
         return
+    else
+        deferrals.done()
     end
 end)
 
@@ -16,14 +26,26 @@ TriggerEvent('es:addGroupCommand', 'addwl', "mod", function(source, args, user)
     addToWhitelist(args, source, false)
 end, function(source, args, user)
     TriggerClientEvent('chat:addMessage', source, {args = {"^1SYSTEM ", _U('permissions')}})
-end, {help = _U('addwl_help_text'), params = {{name = "identifier", help = _U('awl_help_text_param')}}})
+end, {help = _U('addwl_help_text'), params = {{name = "identifier", help = _U('wl_help_text_param')}}})
 
 -- Remove Whitelist Command
 TriggerEvent('es:addGroupCommand', 'removewl', "mod", function(source, args, user)
     removeFromWhitelist(args, source, false)
 end, function(source, args, user)
     TriggerClientEvent('chat:addMessage', source, {args = {"^1SYSTEM ", "Insufficienct permissions!"}})
-end, {help = _U('removewl_help_text'), params = {{name = "identifier", help = _U('awl_help_text_param')}}})
+end, {help = _U('removewl_help_text'), params = {{name = "identifier", help = _U('wl_help_text_param')}}})
+
+-- Reload Whitelist Command
+TriggerEvent('es:addGroupCommand', 'reloadwl', "mod", function(source, args, user)
+    for i = 0, #Whitelist do
+        Whitelist[i] = nil
+    end
+
+    initWhitelist()
+    TriggerClientEvent('chat:addMessage', source, {args = {"^2[WHITELIST] ", _U('reloaded_whitelist')}})
+end, function(source, args, user)
+    TriggerClientEvent('chat:addMessage', source, {args = {"^1SYSTEM ", "Insufficienct permissions!"}})
+end, {help = _U('reloadwl_help_text'), params = {{name = "identifier", help = _U('wlr_help_text_param')}}})
 
 -- Rcon Add Whitelist Command (Supports Ace)
 RegisterCommand("rconaddwl", function(source, args, rawCommand)
@@ -33,6 +55,16 @@ end, true)
 -- Rcon Remove Whitelist Command (Supports Ace)
 RegisterCommand("rconremovewl", function(source, args, rawCommand)
     removeFromWhitelist(args, "", true)
+end, true)
+
+-- Rcon Reload Whitelist Command (Supports Ace)
+RegisterCommand("rconreloadwl", function(source, args, rawCommand)
+    for i = 0, #Whitelist do
+        Whitelist[i] = nil
+    end
+
+    initWhitelist()
+    RconPrint("[Whitelist] Reloaded")
 end, true)
 
 -- Load Whitelist
@@ -85,7 +117,7 @@ function addToWhitelist(args, source, rcon)
                     table.insert(Whitelist, HexSteamID)
 
                     if not rcon then
-                        TriggerClientEvent('chat:addMessage', source, {args = {"^2WHITELIST ", _U('added_to_whitelist', HexSteamID)}})
+                        TriggerClientEvent('chat:addMessage', source, {args = {"^2[WHITELIST] ", _U('added_to_whitelist', HexSteamID)}})
                     else
                         RconPrint("[Whitelist] Added ID to whitelist " .. HexSteamID .. " \n")
                     end
@@ -129,7 +161,7 @@ function addToWhitelist(args, source, rcon)
                     table.insert(Whitelist, id)
 
                     if not rcon then
-                        TriggerClientEvent('chat:addMessage', source, {args = {"^2WHITELIST ", _U('added_to_whitelist', id)}})
+                        TriggerClientEvent('chat:addMessage', source, {args = {"^2[WHITELIST] ", _U('added_to_whitelist', id)}})
                     else
                         RconPrint("[Whitelist] Added ID to whitelist " .. id .. " \n")
                     end
