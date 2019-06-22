@@ -9,6 +9,7 @@ server_scripts {
 	'locale.lua', -- Credit es_extended
 	'locales/da.lua',
 	'locales/en.lua',
+	'locales/fr.lua',
 	'config.lua',
 	'server/server.lua'
 }
