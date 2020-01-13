@@ -1,6 +1,6 @@
-# [Beta] DRP_WHITELIST - v1.0
-**Version:** 1.0
-**Created by:** BenZoN - DanishRP
+# DRP_WHITELIST - v1.1
+**Version:** 1.1
+**Created by:** BenZoN
 
 **Requirements DRP_WHITELIST**
 
@@ -9,7 +9,7 @@
 
 **Note**
 
-This is in BETA, would love some feedback on the system when tested on FiveM Forums
+Stable release - works with out issues.
 
 **Description**
 
