@@ -1,4 +1,7 @@
-# DRP_WHITELIST - v1.1
+# Deprecated and archived use https://github.com/benzon/bzn_allowlist
+
+## DRP_WHITELIST - v1.1
+
 **Version:** 1.1
 **Created by:** BenZoN
 
